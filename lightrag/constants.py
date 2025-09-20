@@ -12,16 +12,16 @@ DEFAULT_MAX_GRAPH_NODES = 1000
 
 # Default values for extraction settings
 DEFAULT_SUMMARY_LANGUAGE = "English"  # Default language for document processing
-DEFAULT_MAX_GLEANING = 1
+DEFAULT_MAX_GLEANING = 0
 
 # Number of description fragments to trigger LLM summary
-DEFAULT_FORCE_LLM_SUMMARY_ON_MERGE = 8
+DEFAULT_FORCE_LLM_SUMMARY_ON_MERGE = 10
 # Max description token size to trigger LLM summary
-DEFAULT_SUMMARY_MAX_TOKENS = 1200
+DEFAULT_SUMMARY_MAX_TOKENS = 2800
 # Recommended LLM summary output length in tokens
-DEFAULT_SUMMARY_LENGTH_RECOMMENDED = 600
+DEFAULT_SUMMARY_LENGTH_RECOMMENDED = 1400
 # Maximum token size sent to LLM for summary
-DEFAULT_SUMMARY_CONTEXT_SIZE = 12000
+DEFAULT_SUMMARY_CONTEXT_SIZE = 14000
 # Default entities to extract if ENTITY_TYPES is not specified in .env
 DEFAULT_ENTITY_TYPES = [
     "Person",
@@ -30,10 +30,9 @@ DEFAULT_ENTITY_TYPES = [
     "Event",
     "Concept",
     "Method",
-    "Content",
-    "Data",
     "Artifact",
     "NaturalObject",
+    "Emotion",
 ]
 
 # Separator for graph fields
@@ -59,7 +58,7 @@ DEFAULT_RERANK_BINDING = "null"
 DEFAULT_MAX_FILE_PATH_LENGTH = 32768
 
 # Default temperature for LLM
-DEFAULT_TEMPERATURE = 1.0
+DEFAULT_TEMPERATURE = 0.4
 
 # Async configuration defaults
 DEFAULT_MAX_ASYNC = 4  # Default maximum async operations

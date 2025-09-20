@@ -100,10 +100,28 @@ async def anthropic_complete_if_cache(
     )
 
     messages: list[dict[str, Any]] = []
+    # Add system settings
+    from lightrag.prompt import PROMPTS
     if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
+        system_prompt = PROMPTS["system_settings"] + "\n\n" + system_prompt
+    else:
+        system_prompt = PROMPTS["system_settings"]
     messages.extend(history_messages)
     messages.append({"role": "user", "content": prompt})
+
+    # Add prefill if provided
+    prefill_prompt = kwargs.pop("prefill_prompt", None)
+    if prefill_prompt:
+        messages.append({"role": "assistant", "content": prefill_prompt})
+    
+    # Add additional parameters
+    if system_prompt:
+        kwargs["system"] = system_prompt
+    if kwargs.get("max_tokens") is None:
+        kwargs["max_tokens"] = 8192
+    if kwargs.get("temperature") is None:
+        from lightrag.constants import DEFAULT_TEMPERATURE
+        kwargs["temperature"] = DEFAULT_TEMPERATURE
 
     logger.debug("===== Sending Query to Anthropic LLM =====")
     logger.debug(f"Model: {model}   Base URL: {base_url}")
@@ -113,7 +131,7 @@ async def anthropic_complete_if_cache(
 
     try:
         response = await anthropic_async_client.messages.create(
-            model=model, messages=messages, stream=True, **kwargs
+            model=model, messages=messages, **kwargs
         )
     except APIConnectionError as e:
         logger.error(f"Anthropic API Connection Error: {e}")
@@ -147,7 +165,14 @@ async def anthropic_complete_if_cache(
             logger.error(f"Error in stream response: {str(e)}")
             raise
 
-    return stream_response()
+    # Check if streaming is requested
+    if kwargs.get("stream"):
+        return stream_response()
+    else:
+        content = response.content[0].text
+        if r"\u" in content:
+            content = safe_unicode_decode(content.encode("utf-8"))
+        return content
 
 
 # Generic Anthropic completion function

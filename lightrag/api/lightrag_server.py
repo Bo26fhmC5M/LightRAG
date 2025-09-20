@@ -161,6 +161,7 @@ def create_app(args):
         "openai",
         "azure_openai",
         "aws_bedrock",
+        "anthropic",
     ]:
         raise Exception("llm binding not supported")
 
@@ -386,6 +387,10 @@ def create_app(args):
                 return create_optimized_azure_openai_llm_func(
                     config_cache, args, llm_timeout
                 )
+            elif binding == "anthropic":
+                from lightrag.llm.anthropic import anthropic_complete
+
+                return anthropic_complete
             else:  # openai and compatible
                 # Use optimized function with pre-processed configuration
                 return create_optimized_openai_llm_func(config_cache, args, llm_timeout)

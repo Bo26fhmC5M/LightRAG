@@ -311,6 +311,7 @@ async def _summarize_descriptions(
         use_llm_func,
         llm_response_cache=llm_response_cache,
         cache_type="summary",
+        prefill_prompt=PROMPTS.get("summarize_entity_descriptions_prefill"),
     )
     return summary
 
@@ -2081,6 +2082,7 @@ async def extract_entities(
             cache_type="extract",
             chunk_id=chunk_key,
             cache_keys_collector=cache_keys_collector,
+            prefill_prompt=PROMPTS.get("entity_extraction_prefill"),
         )
 
         history = pack_user_ass_to_openai_messages(
@@ -2108,6 +2110,7 @@ async def extract_entities(
                 cache_type="extract",
                 chunk_id=chunk_key,
                 cache_keys_collector=cache_keys_collector,
+                prefill_prompt=PROMPTS.get("entity_extraction_prefill"),
             )
 
             # Process gleaning result separately with file path
@@ -2400,12 +2403,15 @@ async def kg_query(
         f"[kg_query] Sending to LLM: {len_of_prompts:,} tokens (Query: {len(tokenizer.encode(query))}, System: {len(tokenizer.encode(sys_prompt))})"
     )
 
-    response = await use_model_func(
+    from .utils import use_model_func_with_prefill
+    response = await use_model_func_with_prefill(
+        use_model_func,
         query,
         system_prompt=sys_prompt,
         history_messages=query_param.conversation_history,
         enable_cot=True,
         stream=query_param.stream,
+        prefill_prompt=PROMPTS.get("rag_response_prefill"),
     )
     if isinstance(response, str) and len(response) > len(sys_prompt):
         response = (
@@ -2540,7 +2546,13 @@ async def extract_keywords_only(
         # Apply higher priority (5) to query relation LLM function
         use_model_func = partial(use_model_func, _priority=5)
 
-    result = await use_model_func(kw_prompt, keyword_extraction=True)
+    from .utils import use_model_func_with_prefill
+    result = await use_model_func_with_prefill(
+        use_model_func,
+        kw_prompt,
+        keyword_extraction=True,
+        prefill_prompt=PROMPTS.get("keywords_extraction_prefill"),
+    )
 
     # 5. Parse out JSON from the LLM response
     result = remove_think_tags(result)
@@ -4262,12 +4274,15 @@ async def naive_query(
         f"[naive_query] Sending to LLM: {len_of_prompts:,} tokens (Query: {len(tokenizer.encode(query))}, System: {len(tokenizer.encode(sys_prompt))})"
     )
 
-    response = await use_model_func(
+    from .utils import use_model_func_with_prefill
+    response = await use_model_func_with_prefill(
+        use_model_func,
         query,
         system_prompt=sys_prompt,
         history_messages=query_param.conversation_history,
         enable_cot=True,
         stream=query_param.stream,
+        prefill_prompt=PROMPTS.get("rag_response_prefill"),
     )
 
     if isinstance(response, str) and len(response) > len(sys_prompt):
